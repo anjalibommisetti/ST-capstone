@@ -1,0 +1,12 @@
+{
+  "name": "testfusion-platform",
+  "version": "1.0.0",
+  "description": "TestFusion – Integrated Software Testing Platform",
+  "scripts": {
+    "start": "start-all.bat",
+    "dev": "start-all.bat",
+    "backend": "run-backend.bat",
+    "frontend": "cd frontend && npm run dev"
+  }
+}
+
