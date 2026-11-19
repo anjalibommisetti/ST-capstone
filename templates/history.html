@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Testing History – TestFusion{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Testing History &amp; Audit Logs</h1>
+        <p class="page-subtitle">Complete chronological record of all White Box and Black Box test runs and coverage evaluations</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('reports') }}" class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Reports Center
+        </a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 class="card-title" style="margin-bottom: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            All Past Executions ({{ runs | length }} Total)
+        </h2>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Execution ID</th>
+                    <th>Target Source Code</th>
+                    <th>Testing Methodology</th>
+                    <th>Tests Count</th>
+                    <th>Verdict</th>
+                    <th>Coverage (Stmt / Branch)</th>
+                    <th>Date &amp; Time</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in runs %}
+                <tr>
+                    <td><b>#{{ r['id'] }}</b></td>
+                    <td>
+                        <span style="font-weight: 600; color: #0f172a;">{{ r['filename'] or 'N/A' }}</span>
+                    </td>
+                    <td>
+                        {% if r['test_type'] == 'WHITE_BOX' %}
+                            <span class="badge badge-info">White Box</span>
+                        {% elif r['test_type'] == 'BLACK_BOX_FILE' %}
+                            <span class="badge" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">Black Box File</span>
+                        {% else %}
+                            <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff;">Manual Test</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r['total_tests'] }} tests</td>
+                    <td>
+                        <span style="color: #16a34a; font-weight: 700;">{{ r['passed_tests'] }} Pass</span>
+                        {% if r['failed_tests'] > 0 %}
+                            / <span style="color: #dc2626; font-weight: 700;">{{ r['failed_tests'] }} Fail</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if r['test_type'] == 'WHITE_BOX' %}
+                            <span style="font-size: 0.8rem; font-weight: 600;">
+                                {{ r['statement_coverage'] | round(1) }}% / {{ r['branch_coverage'] | round(1) }}%
+                            </span>
+                        {% else %}
+                            <span style="color: #94a3b8; font-size: 0.75rem;">N/A (Functional)</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: #64748b; font-size: 0.78rem;">{{ r['executed_at'] }}</td>
+                    <td style="text-align: right;">
+                        <div style="display: inline-flex; gap: 6px; align-items: center;">
+                            <a href="{{ url_for('results', execution_id=r['id']) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">
+                                View
+                            </a>
+                            {% if r['pdf_report_path'] %}
+                            <a href="{{ url_for('download_report', execution_id=r['id']) }}" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;" title="Download PDF">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                PDF
+                            </a>
+                            {% endif %}
+                            <form action="{{ url_for('delete_execution', execution_id=r['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete execution record #{{ r['id'] }}?');">
+                                <button type="submit" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem; color: #dc2626;" title="Delete Record">
+                                    &times;
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: #94a3b8; padding: 32px;">
+                        No past testing executions found. Run tests to build your audit history.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

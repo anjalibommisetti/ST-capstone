@@ -1,12 +1,19 @@
 @echo off
-echo ========================================================
-echo   Launching TestFusion Full Platform (Backend + Frontend)
-echo ========================================================
-
-start "TestFusion Backend (Spring Boot :8080)" cmd /k "%~dp0run-backend.bat"
-start "TestFusion Frontend (Vite React :5173)" cmd /k "%~dp0run-frontend.bat"
-
+echo ======================================================================
+echo   Launching TestFusion - Integrated Software Testing Platform
+echo   Technology Stack: Python Flask + SQLite + Pytest + Coverage.py
+echo ======================================================================
 echo.
-echo Both servers are launching in separate windows!
-echo Once started, open your browser at: http://localhost:5173
+
+cd /d "%~dp0"
+
+echo Starting TestFusion Flask Server on http://localhost:5000 ...
+echo Default Credentials:
+echo   Tester: tester / Tester@123
+echo   Admin:  admin / Admin@123
 echo.
+
+start http://localhost:5000
+
+python app.py
+pause

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Reports Center – TestFusion{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Test Reports &amp; Documentation</h1>
+        <p class="page-subtitle">Downloadable formal PDF test evaluation reports generated via ReportLab engine</p>
+    </div>
+</div>
+
+<div class="content-card" style="margin-bottom: 24px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-color: #bae6fd;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: #0284c7; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: #0369a1;">Certified Testing Audit Reports</h3>
+            <p style="font-size: 0.82rem; color: #0c4a6e; margin-top: 3px;">
+                Each PDF report contains complete execution metadata, exact statement &amp; branch coverage percentages (calculated via Coverage.py), test case execution tables, and color-coded PASS/FAIL verdicts suitable for academic submissions and professional QA compliance.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Available PDF Audit Reports ({{ reports | length }})
+    </h2>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Report ID</th>
+                    <th>Source Code File</th>
+                    <th>Testing Type</th>
+                    <th>Test Cases / Verdict</th>
+                    <th>Coverage Metrics</th>
+                    <th>Generation Date</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td><b>RUN-{{ "%04d" % r['id'] }}</b></td>
+                    <td><b>{{ r['filename'] or 'N/A' }}</b></td>
+                    <td>
+                        {% if r['test_type'] == 'WHITE_BOX' %}
+                            <span class="badge badge-info">White Box</span>
+                        {% elif r['test_type'] == 'BLACK_BOX_FILE' %}
+                            <span class="badge" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">Black Box File</span>
+                        {% else %}
+                            <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff;">Manual Test</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ r['total_tests'] }} total &bull; 
+                        <span style="color: #16a34a; font-weight: 600;">{{ r['passed_tests'] }} PASS</span> / 
+                        <span style="color: #dc2626; font-weight: 600;">{{ r['failed_tests'] }} FAIL</span>
+                    </td>
+                    <td>
+                        {% if r['test_type'] == 'WHITE_BOX' %}
+                            <span style="font-weight: 600; color: #0284c7;">
+                                Stmt: {{ r['statement_coverage'] | round(1) }}% | Branch: {{ r['branch_coverage'] | round(1) }}%
+                            </span>
+                        {% else %}
+                            <span style="color: #94a3b8; font-size: 0.75rem;">Functional Suite</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: #64748b; font-size: 0.78rem;">{{ r['executed_at'] }}</td>
+                    <td style="text-align: right;">
+                        <a href="{{ url_for('download_report', execution_id=r['id']) }}" class="btn btn-primary btn-sm">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Download PDF
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #94a3b8; padding: 32px;">
+                        No PDF reports generated yet. Execute a White Box or Black Box test run to generate certified reports!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

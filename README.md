@@ -1,144 +1,136 @@
-# TestFusion – Integrated Software Testing Platform
-> **Combining White Box Testing and Black Box Testing into a Unified Enterprise QA Application**
+# Integrated Software Testing Platform Using White Box and Black Box Testing
+> **TestFusion – Unified QA Web Application**
 
-TestFusion is a full-featured web application designed for students, software engineers, and QA testers to analyze Java source code, generate behavioral test suites, calculate McCabe cyclomatic complexity, visualize interactive Control Flow Graphs (CFG), measure line and branch coverage, execute tests inside an isolated JVM sandbox, log defects, and export audit-ready test reports.
+A professional, fully functional web-based software testing platform that integrates **White Box Testing** (using **Pytest** and **Coverage.py**) and **Black Box Testing** (via **CSV/Excel Upload** and **Interactive Manual Testing**) in a single unified interface.
 
----
-
-## 🌟 Key Features
-
-### 1. User Authentication & RBAC
-- Stateless JWT-based authentication with BCrypt password hashing.
-- Role-Based Access Control (**ROLE_ADMIN** for platform administrators, **ROLE_USER** for QA engineers/testers).
-- User profile management with self-service credential updates.
-- 1-Click Instant Demo Login buttons (`Tester` and `Admin`).
-
-### 2. Project & Source Code Management
-- Create, update, view, and delete testing projects.
-- In-browser code editor with line numbering and syntax-aware AST parsing.
-- Pre-seeded **Age Eligibility Verification Engine** (`AgeValidator.java`) demonstrating testing across all key inflection boundaries (-1, 0, 17, 18, 120, 121).
-
-### 3. White Box Testing Module
-- **Java AST Parser**: Method discovery, line ranges, decision points (`if`, `switch`), and loop points (`for`, `while`, `do-while`).
-- **Interactive Control Flow Graph (CFG)**: SVG-rendered graph with entry, statement, decision, loop, and exit nodes; zoom/pan controls; and branch labeling (`true`, `false`, `return`).
-- **Cyclomatic Complexity**: Exact McCabe calculation ($M = E - N + 2P$) with automated risk classification (Low, Moderate, High, Very High).
-- **Basis Independent Paths**: Automatic derivation of linearly independent execution paths with 1-click test generation.
-- **Statement & Branch Coverage**: Derived directly from isolated execution trace data.
-
-### 4. Black Box Testing Module
-- **Equivalence Partitioning (EP)**: Define valid/invalid input partitions and synthesize representative tests.
-- **Boundary Value Analysis (BVA)**: Generates tests at minimum, maximum, just below, just above, and internal threshold boundaries.
-- **Decision Table Testing**: Combinatorial evaluation ($2^N$ rules) of boolean conditions mapped to expected system actions.
-- **Custom Functional & Negative Testing**: Positive, negative, and intentional mismatch failure demonstration cases.
-
-### 5. Execution Engine & Sandbox Isolation
-- Uploaded and analyzed code runs inside a dedicated, isolated JVM subprocess with:
-  - Strict memory limit (`-Xmx128m`)
-  - Execution timeout (`6 seconds`)
-  - Prevention of malicious invocations (`Runtime.getRuntime()`, `ProcessBuilder`, `System.exit`)
-  - Ephemeral workspace auto-cleaned after every run
-
-### 6. Defect Management & Reporting
-- Triage test failures into verified bug records (`DEF-XXXX`).
-- Severity assignment (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and lifecycle status (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`).
-- Export test results and defect summaries to structured **CSV** and printable **PDF / Report** format.
-- Run-to-run regression comparison with delta metrics for coverage and pass/fail shifts.
+Built strictly according to user specifications with **Python Flask**, **SQLite**, **Chart.js**, and **ReportLab**.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies |
-|---|---|
-| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS, Lucide React, Recharts |
-| **Backend** | Java 17/25, Spring Boot 3.3.5, Spring Security, Spring Data JPA, JavaParser |
-| **Database** | Embedded H2 (MySQL Mode - zero config) or MySQL 8.x |
-| **Execution** | Isolated Subprocess Runner, JUnit 5 |
+| Component | Technology | Description |
+|---|---|---|
+| **Frontend** | HTML5, CSS3, JavaScript (Vanilla) | Modern White & Light Blue UI theme with custom responsive sidebar |
+| **Backend** | Python Flask | Lightweight, robust REST architecture & Jinja2 server-rendered views |
+| **Testing Engine** | Pytest | Industry-standard Python unit testing framework |
+| **Code Coverage** | Coverage.py (`--branch`) | Precise Statement & Branch coverage metrics derived from actual execution |
+| **Database** | SQLite 3 | Relational persistence for users, uploaded code, test executions, & audit logs |
+| **Visual Charts** | Chart.js | Dynamic Donut ratio chart & Bar performance trends |
+| **PDF Reports** | ReportLab | Audit-grade downloadable PDF testing reports with status badges and metrics |
 
 ---
 
-## 🚀 Quick Start Guide
+## ⚡ How to Run the Application
 
-### Option 1: Double-Click Batch Files (Easiest on Windows)
-1. Double-click `start-all.bat` in the project root.
-2. It will open two console windows:
-   - **Backend**: Spring Boot running on `http://localhost:8080`
-   - **Frontend**: Vite dev server running on `http://localhost:5173`
-3. Open your browser and navigate to: **[http://localhost:5173](http://localhost:5173)**
+### Option 1: One-Click Windows Batch File (Easiest)
+Simply double-click:
+```bat
+run.bat
+```
+*(or `start-all.bat`)*
+
+This script installs any missing requirements, starts the Flask server on port 5000, and automatically opens your web browser.
 
 ---
 
 ### Option 2: Running via Terminal / PowerShell
 
-#### Step 1: Start the Backend (Spring Boot)
-Open a terminal in the `backend` folder:
+1. Open PowerShell or Command Prompt in the project directory (`C:\Users\ANJI\ST-capstone`):
 ```powershell
-# Set Java 17+ (JDK 25 installed)
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-25"
-$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+# 1. Install dependencies (Flask, Pytest, Coverage, ReportLab, OpenPyXL)
+pip install -r requirements.txt
 
-# Run Spring Boot (Using local Maven)
-& "C:\Users\ANJI\PDD-smileguard\tools\apache-maven-3.9.6\bin\mvn.cmd" spring-boot:run
+# 2. Run the application
+python app.py
 ```
-*The backend will boot up on port `8080` with embedded H2 in MySQL mode automatically pre-seeded with sample data.*
 
-#### Step 2: Start the Frontend (Vite + React)
-Open a second terminal in the `frontend` folder:
-```powershell
-cd frontend
-npm run dev
-```
-*The frontend will start on `http://localhost:5173` with automatic API proxying to `http://localhost:8080`.*
+2. Open your web browser and navigate to:
+👉 **[http://localhost:5000](http://localhost:5000)**
 
 ---
 
 ## 🔑 Default Login Credentials
 
-The platform initializes with two accounts (you can also use the **1-Click Quick Demo Login** buttons on the login page):
+The SQLite database is initialized with demo accounts. On the login page, you can also click the **Instant Demo Credentials** buttons:
 
 | Role | Username | Password | Purpose |
 |---|---|---|---|
-| **QA Engineer** | `tester` | `Tester@123` | Create projects, generate tests, view CFG, run suites, log defects |
-| **Administrator** | `admin` | `Admin@123` | Full access + Admin Dashboard, system health, user role management |
+| **Software Tester** | `tester` | `Tester@123` | Standard QA Engineer account pre-loaded with demonstration project |
+| **Administrator** | `admin` | `Admin@123` | Administrator account with full system access |
+
+*You can also register a brand new account using the "Create Account" link.*
 
 ---
 
-## 🗄️ Database Options
+## 📚 Platform Modules & Workflow
 
-### Default: Embedded H2 (Zero Configuration)
-By default, the backend stores data in `./data/testfusion.mv.db` using H2's MySQL compatibility dialect. You can run the application immediately without installing or configuring MySQL.
-- **H2 Web Console**: Accessible at `http://localhost:8080/h2-console`
-  - JDBC URL: `jdbc:h2:file:./data/testfusion;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH`
-  - User: `sa` / Password: *(empty)*
+### 1. 📊 Dashboard (`/dashboard`)
+- **Key Metric Cards**: Total Executions, Passed Tests, Failed Tests, Statement Coverage %, and Branch Coverage %.
+- **Visual Charts**:
+  - Test Verdict Ratio (Doughnut Chart: Passed vs Failed).
+  - Recent Execution Performance & Coverage (Bar Chart).
+- **Recent Executions Table**: Instant access to past runs and PDF reports.
+- **Activity Log**: Real-time audit trail of user actions.
 
-### Optional: Standalone MySQL
-To use an external MySQL database:
-1. Create a database in MySQL:
-   ```sql
-   CREATE DATABASE testfusion_db;
-   ```
-2. Import the provided schema:
-   ```powershell
-   mysql -u root -p testfusion_db < schema.sql
-   ```
-3. Run the backend with the `mysql` profile:
-   ```powershell
-   & "C:\Users\ANJI\PDD-smileguard\tools\apache-maven-3.9.6\bin\mvn.cmd" spring-boot:run -Dspring-boot.run.profiles=mysql
-   ```
+### 2. 📂 Upload Source Code (`/upload`)
+- Browse and upload Python (`.py`) source files (up to 5 MB).
+- **AST Static Analysis**: Automatically discovers all functions, parameters, line ranges, decision points, and loops.
+- **Cyclomatic Complexity Calculation**: Computes McCabe complexity \( M = 1 + \text{decisions} + \text{loops} \) for every function.
+- **Code Viewer**: Formatted view with line numbers.
+- **1-Click Execution Buttons**: Run White Box or Black Box tests immediately on the uploaded file.
+
+### 3. 🔍 White Box Testing (`/whitebox`)
+- **Real Execution**: Runs the target Python program under `coverage.py` and `pytest` in an isolated subprocess.
+- **Coverage Gauges**:
+  - **Statement Coverage %**: Real percentage of executable lines exercised.
+  - **Branch Coverage %**: Real percentage of boolean branch decisions evaluated.
+- **Executed vs. Unexecuted Line Highlighter**:
+  - **Green lines**: Statements exercised by the test suite.
+  - **Red lines**: Statements not reached (dead code or missing test branches).
+- **Custom Test Runner**: Run automated branch exploration or submit custom Pytest test code.
+
+### 4. 📦 Black Box Testing (`/blackbox`)
+- **Method 1: Upload Test Cases (CSV / Excel)**:
+  - Upload `.csv` or `.xlsx` files with columns: `Test Case ID`, `Function Name`, `Input Values`, `Expected Output`.
+  - Batch executes all test cases, evaluates actual vs. expected outputs, and records PASS/FAIL with failure reasons.
+  - **1-Click Demo Button**: "Run Sample 15-Test BVA Suite (CSV)" pre-loaded with Boundary Value Analysis and Equivalence Partitioning cases.
+- **Method 2: Interactive Manual Testing Form**:
+  - Select any discovered function from a dropdown.
+  - Enter test inputs (e.g. `18` or `25, 'STUDENT'`).
+  - Enter expected output (e.g. `Eligible`).
+  - Click "Run Manual Test Case" for instant comparison and execution status.
+
+### 5. 📋 Test Results (`/results`)
+- Detailed breakdown of the latest or selected execution.
+- Color-coded badges: Green for **PASS**, Red for **FAIL**.
+- Detailed error messages and assertion failure reasons.
+- Status filters: View All, Pass Only, or Fail Only.
+- Direct download button for certified audit PDF reports.
+
+### 6. 🕒 Testing History (`/history`)
+- Historical log of all past executions stored in SQLite.
+- Searchable and sortable execution metadata.
+- Links to review individual results, download PDFs, or delete old run records.
+
+### 7. 📄 Reports Center (`/reports`)
+- Central hub for all downloadable testing reports.
+- Generates publication-ready PDFs via ReportLab including:
+  - Project Title & Filename
+  - Test Execution Timestamp
+  - White Box Coverage Breakdown (Statement & Branch)
+  - Color-coded Test Case Execution Tables
+  - Final Audit Verdict
+
+### 8. 🚪 Logout (`/logout`)
+- Secure session invalidation and audit logging.
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Sample Demonstration Files Included
 
-To verify backend tests:
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-25"
-& "C:\Users\ANJI\PDD-smileguard\tools\apache-maven-3.9.6\bin\mvn.cmd" test
-```
-
-To verify frontend build:
-```powershell
-cd frontend
-npm run build
-```
-
+Inside the `sample_files/` directory:
+- `age_validator.py`: Target Python program with `check_eligibility(age)` and `calculate_discount(age)`.
+- `test_cases.csv`: 15 Black Box test cases covering BVA (-1, 0, 17, 18, 120, 121), EP, discounts, and 1 intentional failure demo (`TC-FAIL-01`).
+- `test_cases.xlsx`: Excel format test cases for spreadsheet upload testing.
+- `test_age_validator.py`: Pytest unit test suite demonstrating high statement and branch coverage.

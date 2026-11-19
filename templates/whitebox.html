@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}White Box Testing – TestFusion{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">White Box Testing &amp; Code Coverage</h1>
+        <p class="page-subtitle">Dynamic testing with Pytest and Coverage.py &bull; Statement &amp; Branch Coverage Analysis</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <form action="{{ url_for('run_whitebox') }}" method="POST" style="margin: 0;">
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Execute White Box Suite
+            </button>
+        </form>
+    </div>
+</div>
+
+{% if not active_file %}
+<div class="content-card" style="text-align: center; padding: 48px;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: #334155;">No Active Python Source File</h3>
+    <p style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">Please upload a Python file first to analyze control flow and coverage.</p>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary" style="margin-top: 16px;">Go to File Upload</a>
+</div>
+{% else %}
+
+<!-- Coverage Summary Cards -->
+<div class="cards-grid">
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Statement Coverage</span>
+            <div class="metric-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+            </div>
+        </div>
+        <div class="metric-value">
+            {{ latest_wb['statement_coverage'] | round(1) if latest_wb else '0.0' }}%
+        </div>
+        <div class="metric-sub">
+            {% if latest_wb %}
+                {{ latest_wb['covered_statements'] }} / {{ latest_wb['total_statements'] }} statements exercised
+            {% else %}
+                Suite not executed yet
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Branch Coverage</span>
+            <div class="metric-icon amber">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+        <div class="metric-value">
+            {{ latest_wb['branch_coverage'] | round(1) if latest_wb else '0.0' }}%
+        </div>
+        <div class="metric-sub">
+            {% if latest_wb %}
+                {{ latest_wb['covered_branches'] }} / {{ latest_wb['total_branches'] }} branches covered
+            {% else %}
+                Decision paths
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Executed Lines</span>
+            <div class="metric-icon green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+        </div>
+        <div class="metric-value" style="color: #16a34a;">
+            {{ executed_lines | length }}
+        </div>
+        <div class="metric-sub">Covered by active test runner</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Unexecuted Lines</span>
+            <div class="metric-icon red">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+        </div>
+        <div class="metric-value" style="color: #dc2626;">
+            {{ missing_lines | length }}
+        </div>
+        <div class="metric-sub">Need additional test paths</div>
+    </div>
+</div>
+
+<!-- Coverage Gauge & AST Flow Details -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 24px;">
+    <!-- Coverage Chart -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10h-10z"></path></svg>
+            Coverage Metrics
+        </h2>
+        <div style="position: relative; height: 220px;">
+            <canvas id="coverageBarChart"></canvas>
+        </div>
+        <div style="margin-top: 16px; font-size: 0.8rem; color: #64748b; line-height: 1.5; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            <div>&bull; <b>Statement Coverage:</b> % of executable AST statements run by Pytest.</div>
+            <div style="margin-top: 4px;">&bull; <b>Branch Coverage:</b> % of boolean branch directions (true/false) evaluated.</div>
+        </div>
+    </div>
+
+    <!-- AST Structure & Cyclomatic Complexity summary -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 class="card-title" style="margin-bottom: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                Logic &amp; Branch Path Analysis (AST)
+            </h2>
+            <span style="font-size: 0.75rem; color: #64748b;">Target: <b>{{ active_file['filename'] }}</b></span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Parameters</th>
+                        <th>Decisions</th>
+                        <th>Loops</th>
+                        <th>Complexity M</th>
+                        <th>Min. Tests Needed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fn in ast_info['functions'] %}
+                    <tr>
+                        <td><code style="font-weight: 700; color: #0284c7;">{{ fn['name'] }}()</code></td>
+                        <td><code>{{ fn['args'] | join(', ') if fn['args'] else 'None' }}</code></td>
+                        <td>{{ fn['decision_points'] }}</td>
+                        <td>{{ fn['loops'] }}</td>
+                        <td>
+                            <span class="badge {% if fn['cyclomatic_complexity'] <= 3 %}badge-pass{% elif fn['cyclomatic_complexity'] <= 7 %}badge-info{% else %}badge-fail{% endif %}">
+                                M = {{ fn['cyclomatic_complexity'] }}
+                            </span>
+                        </td>
+                        <td style="font-weight: 600; color: #334155;">{{ fn['cyclomatic_complexity'] }} independent paths</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 14px; padding: 12px; background: var(--primary-subtle); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--primary-dark); border: 1px solid #bae6fd;">
+            <strong>McCabe Formula:</strong> \( M = E - N + 2P \) (or \( M = 1 + \text{decisions} + \text{loops} \)). Higher complexity indicates more test cases required to achieve 100% Branch Coverage.
+        </div>
+    </div>
+</div>
+
+<!-- Code Viewer with Real Execution Highlighting -->
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h2 class="card-title" style="margin-bottom: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                Executed vs Unexecuted Lines Highlighter
+            </h2>
+            <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+                Direct Pytest &amp; Coverage.py tracking. Green indicates lines exercised; Red indicates lines unexercised.
+            </p>
+        </div>
+
+        <!-- Legend -->
+        <div style="display: flex; gap: 16px; font-size: 0.78rem; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 14px; height: 14px; background: rgba(22, 163, 74, 0.4); border-left: 3px solid #16a34a; border-radius: 2px;"></span>
+                <span>Executed ({{ executed_lines | length }} lines)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 14px; height: 14px; background: rgba(220, 38, 38, 0.4); border-left: 3px solid #dc2626; border-radius: 2px;"></span>
+                <span>Unexecuted ({{ missing_lines | length }} lines)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="code-viewer">
+        {% for line in file_lines %}
+            {% set line_no = loop.index %}
+            <div class="code-line {% if line_no in executed_lines %}executed{% elif line_no in missing_lines %}missing{% endif %}">
+                <span class="code-lineno">{{ line_no }}</span>
+                <span class="code-text">{{ line }}</span>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Optional: Custom Pytest Test Runner Code Editor -->
+<div class="content-card">
+    <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Custom Pytest Test Suite (Optional)
+    </h2>
+    <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">
+        Leave blank to run the automated branch exploration suite, or provide your own Pytest test assertions below:
+    </p>
+    <form action="{{ url_for('run_whitebox') }}" method="POST">
+        <div class="form-group">
+            <textarea name="custom_test_code" class="form-control" rows="6" style="font-family: Consolas, monospace; font-size: 0.85rem;" placeholder="# Optional: write custom def test_case(): assertions here. Leave blank for auto suite."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Execute With Custom Suite
+        </button>
+    </form>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if active_file and latest_wb %}
+<script>
+    const stmtCov = {{ latest_wb['statement_coverage'] | round(1) }};
+    const branchCov = {{ latest_wb['branch_coverage'] | round(1) }};
+
+    const ctx = document.getElementById('coverageBarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Statement Cov.', 'Branch Cov.'],
+            datasets: [{
+                label: 'Coverage %',
+                data: [stmtCov, branchCov],
+                backgroundColor: ['#0284c7', '#f59e0b'],
+                borderRadius: 6,
+                maxBarThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) { return value + "%"; }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) { return c.raw + "% covered"; }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

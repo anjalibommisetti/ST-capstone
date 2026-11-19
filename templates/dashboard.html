@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard – Integrated Testing Platform{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Testing Dashboard</h1>
+        <p class="page-subtitle">Overview of White Box &amp; Black Box test executions, coverage analytics, and activity logs</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('upload') }}" class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Upload Code
+        </a>
+        <a href="{{ url_for('whitebox') }}" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+            White Box
+        </a>
+        <a href="{{ url_for('blackbox') }}" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            Black Box
+        </a>
+    </div>
+</div>
+
+<!-- 5 Key Metric Cards -->
+<div class="cards-grid">
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Total Executions</span>
+            <div class="metric-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats['total_executions'] }}</div>
+        <div class="metric-sub">Across all uploaded suites</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Passed Tests</span>
+            <div class="metric-icon green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+        </div>
+        <div class="metric-value" style="color: #16a34a;">{{ stats['total_passed'] }}</div>
+        <div class="metric-sub">
+            {% if (stats['total_passed'] + stats['total_failed']) > 0 %}
+                {{ ((stats['total_passed'] / (stats['total_passed'] + stats['total_failed'])) * 100) | round(1) }}% pass rate
+            {% else %}
+                0% pass rate
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Failed Tests</span>
+            <div class="metric-icon red">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+            </div>
+        </div>
+        <div class="metric-value" style="color: #dc2626;">{{ stats['total_failed'] }}</div>
+        <div class="metric-sub">Defects &amp; assertion issues</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Statement Cov.</span>
+            <div class="metric-icon blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats['avg_stmt_cov'] | round(1) }}%</div>
+        <div class="metric-sub">Calculated via Coverage.py</div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-card-header">
+            <span class="metric-title">Branch Cov.</span>
+            <div class="metric-icon amber">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ stats['avg_branch_cov'] | round(1) }}%</div>
+        <div class="metric-sub">Decision condition paths</div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 28px;">
+    <!-- Pass/Fail Donut Chart -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10h-10z"></path></svg>
+            Test Verdict Ratio
+        </h2>
+        <div style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+            <canvas id="verdictChart"></canvas>
+        </div>
+        <div style="display: flex; justify-content: center; gap: 24px; margin-top: 14px; font-size: 0.82rem;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 12px; height: 12px; border-radius: 3px; background-color: #16a34a;"></span>
+                <span>Passed ({{ stats['total_passed'] }})</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="width: 12px; height: 12px; border-radius: 3px; background-color: #dc2626;"></span>
+                <span>Failed ({{ stats['total_failed'] }})</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Execution Trend Bar Chart -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            Recent Execution Performance &amp; Coverage
+        </h2>
+        <div style="position: relative; height: 280px;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Section: Recent Executions & Activities -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+    <!-- Recent Executions Table -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 class="card-title" style="margin-bottom: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Recent Executions
+            </h2>
+            <a href="{{ url_for('history') }}" style="font-size: 0.8rem; color: #0284c7; text-decoration: none; font-weight: 600;">View All &rarr;</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Run ID</th>
+                        <th>Target File</th>
+                        <th>Type</th>
+                        <th>Passed / Failed</th>
+                        <th>Coverage</th>
+                        <th>Executed At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for run in recent_runs %}
+                    <tr>
+                        <td><b>#{{ run['id'] }}</b></td>
+                        <td>{{ run['filename'] or 'N/A' }}</td>
+                        <td>
+                            {% if run['test_type'] == 'WHITE_BOX' %}
+                                <span class="badge badge-info">White Box</span>
+                            {% elif run['test_type'] == 'BLACK_BOX_FILE' %}
+                                <span class="badge" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe;">Black Box File</span>
+                            {% else %}
+                                <span class="badge" style="background:#f3e8ff; color:#7e22ce; border:1px solid #e9d5ff;">Manual Test</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="color: #16a34a; font-weight: 600;">{{ run['passed_tests'] }} Pass</span> / 
+                            <span style="color: #dc2626; font-weight: 600;">{{ run['failed_tests'] }} Fail</span>
+                        </td>
+                        <td>
+                            {% if run['test_type'] == 'WHITE_BOX' %}
+                                <span style="font-size: 0.8rem;">S: {{ run['statement_coverage'] | round(1) }}% | B: {{ run['branch_coverage'] | round(1) }}%</span>
+                            {% else %}
+                                <span style="color: #94a3b8; font-size: 0.75rem;">N/A (Functional)</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #64748b; font-size: 0.78rem;">{{ run['executed_at'] }}</td>
+                        <td>
+                            <a href="{{ url_for('results', execution_id=run['id']) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem;">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">
+                            No test executions recorded yet. Run a White Box or Black Box test to see results!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="content-card" style="margin-bottom: 0;">
+        <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Recent Activity
+        </h2>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            {% for act in activities %}
+            <div style="border-left: 3px solid #0284c7; padding-left: 12px; font-size: 0.82rem;">
+                <div style="font-weight: 700; color: #0f172a;">{{ act['action'] }}</div>
+                <div style="color: #475569; margin-top: 2px;">{{ act['details'] }}</div>
+                <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 3px;">{{ act['timestamp'] }}</div>
+            </div>
+            {% else %}
+            <div style="color: #94a3b8; font-size: 0.82rem; text-align: center; padding: 20px;">
+                No recent activity logged.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const chartData = {{ chart_data | tojson }};
+
+    // 1. Verdict Ratio Donut Chart
+    const verdictCtx = document.getElementById('verdictChart').getContext('2d');
+    const totalP = chartData.total_passed || 0;
+    const totalF = chartData.total_failed || 0;
+    const hasData = (totalP + totalF) > 0;
+
+    new Chart(verdictCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Passed', 'Failed'],
+            datasets: [{
+                data: hasData ? [totalP, totalF] : [1, 0],
+                backgroundColor: hasData ? ['#16a34a', '#dc2626'] : ['#e2e8f0', '#cbd5e1'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (!hasData) return 'No executions yet';
+                            return `${context.label}: ${context.raw} tests`;
+                        }
+                    }
+                }
+            },
+            cutout: '72%'
+        }
+    });
+
+    // 2. Trend Bar & Coverage Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const labels = chartData.labels.length > 0 ? chartData.labels : ['No data'];
+    const passed = chartData.passed.length > 0 ? chartData.passed : [0];
+    const failed = chartData.failed.length > 0 ? chartData.failed : [0];
+
+    new Chart(trendCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Passed',
+                    data: passed,
+                    backgroundColor: '#16a34a',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Failed',
+                    data: failed,
+                    backgroundColor: '#dc2626',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0, font: { size: 11 } }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { boxWidth: 12, font: { size: 12 } }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

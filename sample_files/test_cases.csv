@@ -1,0 +1,16 @@
+Test Case ID,Function Name,Input Values,Expected Output
+TC-BVA-01,check_eligibility,-1,Invalid Input: Age cannot be negative
+TC-BVA-02,check_eligibility,0,Not Eligible
+TC-BVA-03,check_eligibility,17,Not Eligible
+TC-BVA-04,check_eligibility,18,Eligible
+TC-BVA-05,check_eligibility,120,Eligible
+TC-BVA-06,check_eligibility,121,Invalid Input: Age exceeds maximum human lifespan
+TC-EP-01,check_eligibility,-15,Invalid Input: Age cannot be negative
+TC-EP-02,check_eligibility,10,Not Eligible
+TC-EP-03,check_eligibility,30,Eligible
+TC-EP-04,check_eligibility,140,Invalid Input: Age exceeds maximum human lifespan
+TC-FAIL-01,check_eligibility,12,Eligible
+TC-DISC-01,calculate_discount,4,0.0
+TC-DISC-02,calculate_discount,15,50.0
+TC-DISC-03,calculate_discount,65,70.0
+TC-DISC-04,calculate_discount,30,100.0
