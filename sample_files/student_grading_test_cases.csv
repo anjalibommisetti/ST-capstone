@@ -1,0 +1,27 @@
+Test Case ID,Function Name,Input Values,Expected Output
+TC-GRD-01,calculate_grade,"-1, 80",Invalid Marks
+TC-GRD-02,calculate_grade,"105, 80",Invalid Marks
+TC-GRD-03,calculate_grade,"85, -5",Invalid Attendance
+TC-GRD-04,calculate_grade,"85, 105",Invalid Attendance
+TC-GRD-05,calculate_grade,"95, 74",Failed due to Low Attendance
+TC-GRD-06,calculate_grade,"95, 75",Grade A
+TC-GRD-07,calculate_grade,"90, 85",Grade A
+TC-GRD-08,calculate_grade,"100, 100",Grade A
+TC-GRD-09,calculate_grade,"80, 80",Grade B
+TC-GRD-10,calculate_grade,"89, 90",Grade B
+TC-GRD-11,calculate_grade,"70, 75",Grade C
+TC-GRD-12,calculate_grade,"79, 85",Grade C
+TC-GRD-13,calculate_grade,"50, 80",Grade D
+TC-GRD-14,calculate_grade,"69, 78",Grade D
+TC-GRD-15,calculate_grade,"49, 90",Grade F
+TC-GRD-16,calculate_grade,"0, 85",Grade F
+TC-FAIL-02,calculate_grade,"45, 90",Grade D
+TC-SCH-01,check_scholarship,"-0.5, 200000",Invalid GPA
+TC-SCH-02,check_scholarship,"4.5, 200000",Invalid GPA
+TC-SCH-03,check_scholarship,"3.8, -100",Invalid Income
+TC-SCH-04,check_scholarship,"3.9, 200000",Full Scholarship
+TC-SCH-05,check_scholarship,"3.8, 250000",Full Scholarship
+TC-SCH-06,check_scholarship,"3.6, 450000",Half Scholarship
+TC-SCH-07,check_scholarship,"3.5, 500000",Half Scholarship
+TC-SCH-08,check_scholarship,"3.2, 280000",Need-based Bursary
+TC-SCH-09,check_scholarship,"2.8, 400000",No Scholarship

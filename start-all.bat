@@ -13,7 +13,8 @@ echo   Tester: tester / Tester@123
 echo   Admin:  admin / Admin@123
 echo.
 
-start http://localhost:5000
+:: Wait 2 seconds for Flask to bind port 5000, then open browser
+start "" cmd /c "ping 127.0.0.1 -n 3 >nul && start http://localhost:5000"
 
 python app.py
 pause
