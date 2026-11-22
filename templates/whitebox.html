@@ -194,26 +194,6 @@
     </div>
 </div>
 
-<!-- Optional: Custom Pytest Test Runner Code Editor -->
-<div class="content-card">
-    <h2 class="card-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        Custom Pytest Test Suite (Optional)
-    </h2>
-    <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">
-        Leave blank to run the automated branch exploration suite, or provide your own Pytest test assertions below:
-    </p>
-    <form action="{{ url_for('run_whitebox') }}" method="POST">
-        <div class="form-group">
-            <textarea name="custom_test_code" class="form-control" rows="6" style="font-family: Consolas, monospace; font-size: 0.85rem;" placeholder="# Optional: write custom def test_case(): assertions here. Leave blank for auto suite."></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            Execute With Custom Suite
-        </button>
-    </form>
-</div>
-
 {% endif %}
 {% endblock %}
 
