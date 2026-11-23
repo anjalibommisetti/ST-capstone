@@ -202,89 +202,105 @@
 {% endblock %}
 
 {% block scripts %}
+<script id="chartDataJson" type="application/json">
+{{ chart_data | tojson }}
+</script>
+
 <script>
-    const chartData = {{ chart_data | tojson }};
+document.addEventListener('DOMContentLoaded', function() {
+    let chartData = {};
+    const dataScript = document.getElementById('chartDataJson');
+    if (dataScript && dataScript.textContent) {
+        try {
+            chartData = JSON.parse(dataScript.textContent.trim());
+        } catch (e) {}
+    }
 
     // 1. Verdict Ratio Donut Chart
-    const verdictCtx = document.getElementById('verdictChart').getContext('2d');
-    const totalP = chartData.total_passed || 0;
-    const totalF = chartData.total_failed || 0;
-    const hasData = (totalP + totalF) > 0;
+    const verdictCanvas = document.getElementById('verdictChart');
+    if (verdictCanvas) {
+        const totalP = chartData.total_passed || 0;
+        const totalF = chartData.total_failed || 0;
+        const hasData = (totalP + totalF) > 0;
 
-    new Chart(verdictCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Passed', 'Failed'],
-            datasets: [{
-                data: hasData ? [totalP, totalF] : [1, 0],
-                backgroundColor: hasData ? ['#16a34a', '#dc2626'] : ['#e2e8f0', '#cbd5e1'],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            if (!hasData) return 'No executions yet';
-                            return `${context.label}: ${context.raw} tests`;
+        new Chart(verdictCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Passed', 'Failed'],
+                datasets: [{
+                    data: hasData ? [totalP, totalF] : [1, 0],
+                    backgroundColor: hasData ? ['#16a34a', '#dc2626'] : ['#e2e8f0', '#cbd5e1'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (!hasData) return 'No executions yet';
+                                return context.label + ': ' + context.raw + ' tests';
+                            }
                         }
                     }
-                }
-            },
-            cutout: '72%'
-        }
-    });
+                },
+                cutout: '72%'
+            }
+        });
+    }
 
     // 2. Trend Bar & Coverage Chart
-    const trendCtx = document.getElementById('trendChart').getContext('2d');
-    const labels = chartData.labels.length > 0 ? chartData.labels : ['No data'];
-    const passed = chartData.passed.length > 0 ? chartData.passed : [0];
-    const failed = chartData.failed.length > 0 ? chartData.failed : [0];
+    const trendCanvas = document.getElementById('trendChart');
+    if (trendCanvas) {
+        const labels = chartData.labels && chartData.labels.length > 0 ? chartData.labels : ['No data'];
+        const passed = chartData.passed && chartData.passed.length > 0 ? chartData.passed : [0];
+        const failed = chartData.failed && chartData.failed.length > 0 ? chartData.failed : [0];
 
-    new Chart(trendCtx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Passed',
-                    data: passed,
-                    backgroundColor: '#16a34a',
-                    borderRadius: 4
-                },
-                {
-                    label: 'Failed',
-                    data: failed,
-                    backgroundColor: '#dc2626',
-                    borderRadius: 4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 11 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0, font: { size: 11 } }
-                }
+        new Chart(trendCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Passed',
+                        data: passed,
+                        backgroundColor: '#16a34a',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Failed',
+                        data: failed,
+                        backgroundColor: '#dc2626',
+                        borderRadius: 4
+                    }
+                ]
             },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { boxWidth: 12, font: { size: 12 } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { boxWidth: 12, font: { size: 12 } }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+});
 </script>
 {% endblock %}

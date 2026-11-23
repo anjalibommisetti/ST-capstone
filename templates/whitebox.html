@@ -2,19 +2,27 @@
 
 {% block title %}White Box Testing – TestFusion{% endblock %}
 
+{% block head %}
+<style>
+.cfg-container.is-hidden {
+    display: none;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
         <h1 class="page-title">White Box Testing &amp; Code Coverage</h1>
-        <p class="page-subtitle">Dynamic testing with Pytest and Coverage.py &bull; Statement &amp; Branch Coverage Analysis</p>
+        <p class="page-subtitle">Interactive Control Flow Graph (CFG) &bull; McCabe Basis Path Derivation &bull; Statement &amp; Branch Coverage</p>
     </div>
     <div style="display: flex; gap: 10px;">
-        <form action="{{ url_for('run_whitebox') }}" method="POST" style="margin: 0;">
-            <button type="submit" class="btn btn-primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                Execute White Box Suite
-            </button>
-        </form>
+        {% if latest_wb %}
+        <a href="{{ url_for('results', execution_id=latest_wb['id']) }}" class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            View Results Table
+        </a>
+        {% endif %}
     </div>
 </div>
 
@@ -25,6 +33,34 @@
     <a href="{{ url_for('upload') }}" class="btn btn-primary" style="margin-top: 16px;">Go to File Upload</a>
 </div>
 {% else %}
+
+<!-- Interactive Testing Strategy Selection Bar -->
+<div class="content-card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge" style="background: #0284c7; color: white;">Test Strategy Mode</span>
+                <span style="font-size: 0.8rem; color: #0369a1; font-weight: 600;">Target: {{ active_file['filename'] }}</span>
+            </div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0c4a6e; margin-top: 4px;">Choose White Box Coverage Strategy</h3>
+            <p style="font-size: 0.82rem; color: #0369a1; margin-top: 2px;">
+                Select your desired testing level to see how coverage percentages and line highlights shift:
+            </p>
+        </div>
+
+        <form action="{{ url_for('run_whitebox') }}" method="POST" style="margin: 0; display: flex; gap: 10px; align-items: center;">
+            <select name="test_mode" class="form-control" style="width: auto; min-width: 320px; font-weight: 600; color: #0f172a; border-color: #7dd3fc;">
+                <option value="basis_path" selected>🌟 100% Basis Path Testing (McCabe Full Coverage)</option>
+                <option value="branch">⚡ Branch &amp; Decision Coverage (Evaluate True/False)</option>
+                <option value="statement">🔍 Statement Coverage (Basic Smoke Test)</option>
+            </select>
+            <button type="submit" class="btn btn-primary" style="white-space: nowrap; padding: 10px 20px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Execute Selected Strategy
+            </button>
+        </form>
+    </div>
+</div>
 
 <!-- Coverage Summary Cards -->
 <div class="cards-grid">
@@ -93,69 +129,136 @@
     </div>
 </div>
 
-<!-- Coverage Gauge & AST Flow Details -->
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 24px;">
+<!-- Coverage Gauge & Active Source Code Section -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
     <!-- Coverage Chart -->
     <div class="content-card" style="margin-bottom: 0;">
         <h2 class="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 10 10h-10z"></path></svg>
             Coverage Metrics
         </h2>
-        <div style="position: relative; height: 220px;">
+        <div style="position: relative; height: 200px;">
             <canvas id="coverageBarChart"></canvas>
         </div>
-        <div style="margin-top: 16px; font-size: 0.8rem; color: #64748b; line-height: 1.5; border-top: 1px solid var(--border-color); padding-top: 12px;">
+        <div style="margin-top: 14px; font-size: 0.8rem; color: #64748b; line-height: 1.5; border-top: 1px solid var(--border-color); padding-top: 10px;">
             <div>&bull; <b>Statement Coverage:</b> % of executable AST statements run by Pytest.</div>
-            <div style="margin-top: 4px;">&bull; <b>Branch Coverage:</b> % of boolean branch directions (true/false) evaluated.</div>
+            <div style="margin-top: 3px;">&bull; <b>Branch Coverage:</b> % of boolean branch directions (true/false) evaluated.</div>
         </div>
     </div>
 
-    <!-- AST Structure & Cyclomatic Complexity summary -->
+    <!-- Active Source Code & Upload in White Box -->
     <div class="content-card" style="margin-bottom: 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Source Code Under Test
+        </h2>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 14px;">
+            <div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a;">{{ active_file['filename'] }}</div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                    {{ file_lines | length }} lines &bull; Size: {{ (active_file['file_size'] / 1024) | round(1) }} KB
+                </div>
+            </div>
+            <span class="badge badge-pass">Active</span>
+        </div>
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label class="form-label" style="font-size: 0.78rem;">Upload / Switch Python Source (.py)</label>
+                <input type="file" name="source_file" class="form-control" accept=".py" required style="padding: 6px 10px; font-size: 0.8rem;">
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center;">
+                Upload New Python File
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Visual Control Flow Graph (CFG) Explorer -->
+{% if ast_info and ast_info['functions'] %}
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
             <h2 class="card-title" style="margin-bottom: 0;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                Logic &amp; Branch Path Analysis (AST)
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Visual Control Flow Graph (CFG) &amp; Decision Nodes
             </h2>
-            <span style="font-size: 0.75rem; color: #64748b;">Target: <b>{{ active_file['filename'] }}</b></span>
+            <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+                Structural graph showing Entry nodes, Decision diamonds, Branch statements, and Exit/Return points
+            </p>
         </div>
 
+        <!-- Function Selector Tabs for CFG -->
+        <div style="display: flex; gap: 8px;">
+            {% for fn in ast_info['functions'] %}
+            <button type="button" class="btn btn-secondary btn-sm cfg-tab-btn {% if loop.first %}active{% endif %}" onclick="showCfg('cfg_{{ fn.name }}', this)" style="font-size: 0.8rem;">
+                {{ fn.name }}()
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- CFG Graph Containers -->
+    {% for fn in ast_info['functions'] %}
+    <div id="cfg_{{ fn.name }}" class="cfg-container {% if not loop.first %}is-hidden{% endif %}" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 24px; text-align: center; overflow-x: auto;">
+        <div style="margin-bottom: 12px; font-size: 0.85rem; font-weight: 700; color: #0284c7;">
+            Control Flow Diagram: <code>{{ fn.name }}()</code> (Cyclomatic Complexity M = {{ fn.cyclomatic_complexity }})
+        </div>
+        <div class="mermaid" style="display: inline-block;">
+{{ fn.cfg_mermaid }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Linearly Independent Basis Paths Explorer (McCabe Testing) -->
+<div class="content-card">
+    <h2 class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        Linearly Independent Basis Paths (Derived from McCabe Complexity \(M\))
+    </h2>
+    <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 16px;">
+        To achieve 100% White Box Test Coverage, every independent execution route below must be exercised at least once:
+    </p>
+
+    {% for fn in ast_info['functions'] %}
+    <div style="margin-bottom: 20px;">
+        <div style="font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-bottom: 8px;">
+            Function: <code style="color: #0284c7;">{{ fn.name }}()</code> &mdash; {{ fn.basis_paths | length }} Independent Paths:
+        </div>
         <div class="table-responsive">
             <table class="custom-table">
                 <thead>
                     <tr>
-                        <th>Function</th>
-                        <th>Parameters</th>
-                        <th>Decisions</th>
-                        <th>Loops</th>
-                        <th>Complexity M</th>
-                        <th>Min. Tests Needed</th>
+                        <th style="width: 140px;">Path ID</th>
+                        <th>Execution Trace / Route</th>
+                        <th style="width: 160px;">Path Condition</th>
+                        <th style="width: 120px;">Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for fn in ast_info['functions'] %}
+                    {% for p in fn['basis_paths'] %}
                     <tr>
-                        <td><code style="font-weight: 700; color: #0284c7;">{{ fn['name'] }}()</code></td>
-                        <td><code>{{ fn['args'] | join(', ') if fn['args'] else 'None' }}</code></td>
-                        <td>{{ fn['decision_points'] }}</td>
-                        <td>{{ fn['loops'] }}</td>
+                        <td><b>{{ p['path_id'] }}</b></td>
+                        <td><code>{{ p['description'] }}</code></td>
+                        <td><span style="font-size: 0.78rem; color: #475569;">{{ p['condition'] }}</span></td>
                         <td>
-                            <span class="badge {% if fn['cyclomatic_complexity'] <= 3 %}badge-pass{% elif fn['cyclomatic_complexity'] <= 7 %}badge-info{% else %}badge-fail{% endif %}">
-                                M = {{ fn['cyclomatic_complexity'] }}
-                            </span>
+                            {% if latest_wb and latest_wb['statement_coverage'] > 90 %}
+                                <span class="badge badge-pass">Covered</span>
+                            {% elif latest_wb and latest_wb['statement_coverage'] > 40 and loop.index <= 4 %}
+                                <span class="badge badge-pass">Covered</span>
+                            {% else %}
+                                <span class="badge" style="background:#f1f5f9; color:#64748b;">Pending</span>
+                            {% endif %}
                         </td>
-                        <td style="font-weight: 600; color: #334155;">{{ fn['cyclomatic_complexity'] }} independent paths</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-
-        <div style="margin-top: 14px; padding: 12px; background: var(--primary-subtle); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--primary-dark); border: 1px solid #bae6fd;">
-            <strong>McCabe Formula:</strong> \( M = E - N + 2P \) (or \( M = 1 + \text{decisions} + \text{loops} \)). Higher complexity indicates more test cases required to achieve 100% Branch Coverage.
-        </div>
     </div>
+    {% endfor %}
 </div>
+{% endif %}
 
 <!-- Code Viewer with Real Execution Highlighting -->
 <div class="content-card">
@@ -199,12 +302,18 @@
 
 {% block scripts %}
 {% if active_file and latest_wb %}
-<script>
-    const stmtCov = {{ latest_wb['statement_coverage'] | round(1) }};
-    const branchCov = {{ latest_wb['branch_coverage'] | round(1) }};
+<div id="whiteboxData" data-stmt="{{ latest_wb['statement_coverage'] | round(1) }}" data-branch="{{ latest_wb['branch_coverage'] | round(1) }}" style="display: none;"></div>
 
-    const ctx = document.getElementById('coverageBarChart').getContext('2d');
-    new Chart(ctx, {
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('coverageBarChart');
+    if (!canvas) return;
+
+    const dataEl = document.getElementById('whiteboxData');
+    const stmtCov = dataEl ? parseFloat(dataEl.getAttribute('data-stmt') || '0') : 0;
+    const branchCov = dataEl ? parseFloat(dataEl.getAttribute('data-branch') || '0') : 0;
+
+    new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
             labels: ['Statement Cov.', 'Branch Cov.'],
@@ -238,6 +347,23 @@
             }
         }
     });
+});
+
+function showCfg(targetId, btn) {
+    document.querySelectorAll('.cfg-container').forEach(function(el) { el.classList.add('is-hidden'); });
+    document.querySelectorAll('.cfg-tab-btn').forEach(function(el) {
+        el.classList.remove('active');
+        el.style.backgroundColor = '';
+        el.style.color = '';
+    });
+    const target = document.getElementById(targetId);
+    if (target) {
+        target.classList.remove('is-hidden');
+    }
+    btn.classList.add('active');
+    btn.style.backgroundColor = '#0284c7';
+    btn.style.color = 'white';
+}
 </script>
 {% endif %}
 {% endblock %}

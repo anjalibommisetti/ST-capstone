@@ -429,10 +429,11 @@ def run_whitebox():
         flash("No active Python file found to test.", "danger")
         return redirect(url_for('upload'))
 
+    test_mode = request.form.get('test_mode', 'basis_path')
     custom_test_code = request.form.get('custom_test_code')
 
     # Execute White Box Testing using real Pytest and Coverage.py
-    wb_res = WhiteBoxEngine.run_white_box_analysis(active_file['filepath'], custom_test_code)
+    wb_res = WhiteBoxEngine.run_white_box_analysis(active_file['filepath'], custom_test_code, test_mode=test_mode)
 
     if not wb_res["success"]:
         flash(f"White Box execution failed: {wb_res.get('error', 'Unknown error')}", "danger")
@@ -506,8 +507,8 @@ def run_whitebox():
     conn.close()
 
     log_activity(user_id, "WHITE_BOX_EXECUTED", f"Executed white box suite on {active_file['filename']}: Stmt Cov {wb_res['statement_coverage']}%, Branch Cov {wb_res['branch_coverage']}%")
-    flash(f"White Box testing finished! Statement Coverage: {wb_res['statement_coverage']}%, Branch Coverage: {wb_res['branch_coverage']}%.", "success")
-    return redirect(url_for('results', execution_id=exec_id))
+    flash(f"White Box testing finished ({test_mode.replace('_', ' ').title()} Strategy)! Statement Coverage: {wb_res['statement_coverage']}%, Branch Coverage: {wb_res['branch_coverage']}%.", "success")
+    return redirect(url_for('whitebox'))
 
 # --- Black Box Testing ---
 
